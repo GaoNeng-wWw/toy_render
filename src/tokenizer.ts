@@ -213,7 +213,6 @@ export const valid = (tokens: Token[]):boolean => {
     if (item.value === value && item.type === TokenType.OPEN_TAG) {
       return;
     }
-    console.log(item.value, item.type);
     let errMsg = `Should find <${value}> but find <${item.value}>`
     throw new Error(errMsg);
   }

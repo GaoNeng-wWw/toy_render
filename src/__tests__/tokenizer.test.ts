@@ -9,6 +9,14 @@ describe('tokenizer',()=>{
       expect(tokens[1].type).toBe(TokenType.CLOSE_TAG);
       expect(tokens[0].value).toBe('div');
       expect(tokens[1].value).toBe('div');
+      const t2 = tokenizer('<h1>hello-world</h1>')
+      expect(t2[0].type).toBe(TokenType.OPEN_TAG);
+      expect(t2[2].type).toBe(TokenType.CLOSE_TAG);
+      expect(t2[1].type).toBe(TokenType.TEXT);
+      expect(t2[0].value).toBe('h1');
+      expect(t2[2].value).toBe('h1');
+
+      expect(t2[0].attrs).toStrictEqual({})
     })
     it('nest',()=>{
       const tokens = tokenizer('<div><div></div></div>')

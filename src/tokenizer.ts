@@ -81,7 +81,7 @@ export const tokenizer = (
       return onAttr
     }
     if (
-      /[a-zA-Z]/.test(cur)
+      /[a-zA-Z0-9]/.test(cur)
     ) {
       token.value += cur;
       return onTagName;

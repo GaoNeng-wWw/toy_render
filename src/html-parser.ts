@@ -9,10 +9,12 @@ export class _Node {
     public name: string,
     public children: _Node[] = [],
     public parent: _Node | null = null,
+    public attr: Record<string, string | boolean> = {}
   ){
     this.children = [];
     this.parent = parent;
     this.name = name;
+    this.attr = attr;
   }
   append(child: _Node){
     this.children.push(child)
@@ -47,7 +49,7 @@ export const dom = (
   debugger;
   const dom = new Dom();
   let cur:Dom = dom;
-  const createNode = (token: Token) => token.type === TokenType.TEXT ? new _Text(token.value) : new _Node(token.value, [], null);
+  const createNode = (token: Token) => token.type === TokenType.TEXT ? new _Text(token.value) : new _Node(token.value, [], null, token.attrs);
   for (const token of tokens) {
     if (token.type !== TokenType.CLOSE_TAG) {
       const node = createNode(token);

@@ -3,8 +3,8 @@ import { _Node, _Text } from "./html-parser";
 export type LayoutInfo = {
   x:number;
   y:number;
-  w:number;
-  h:number;
+  width:number;
+  height:number;
 }
 
 export class Layout{
@@ -25,11 +25,11 @@ export class Layout{
     return {
       x:this.x,
       y:this.y,
-      w:this.width,
-      h:this.height
+      width:this.width,
+      height:this.height
     }
   }
-  pain(ctx: CanvasRenderingContext2D): void{}
+  paint(ctx: CanvasRenderingContext2D): void{}
 }
 export class InlineLayout extends Layout{
   constructor(
@@ -51,20 +51,22 @@ export class InlineLayout extends Layout{
     this.parent=parent;
   }
   layout(ctx: CanvasRenderingContext2D){
-    const childrenLayoutInfo = this.children.map((child) => child.layout(ctx));
-    const width = childrenLayoutInfo.reduce((pre,cur) => {
-      return pre + cur.w
-    }, 0);
-    const height = Math.max(...childrenLayoutInfo.map((child) => child.h));
+    for (const child of this.children){
+      const info = child.layout(ctx);
+      this.width += info.width;
+      this.height = Math.max(this.height, info.height);
+    }
+    this.x = this.parent?.width ?? 0;
     return {
       x:this.x,
       y:this.y,
-      w:width,
-      h:height
+      width:this.width,
+      height:this.height
     }
   }
-  pain(ctx: CanvasRenderingContext2D): void {
-    this.children.forEach(child => child.pain(ctx));
+  paint(ctx: CanvasRenderingContext2D): void {
+    super.paint(ctx);
+    this.children.forEach(child => child.paint(ctx));
   }
 }
 
@@ -77,20 +79,22 @@ export class TextLayout extends InlineLayout {
     this.parent = parnet;
     this.data = data
   }
-  layout(ctx: CanvasRenderingContext2D): { x: number; y: number; w: number; h: number; } {
-    const {width ,fontBoundingBoxDescent} = ctx.measureText(this.data);
-    const x = this.parent?.width ?? 0 + width;
-    const y = 0;
+  layout(ctx: CanvasRenderingContext2D){
+    const {width ,fontBoundingBoxAscent} = ctx.measureText(this.data);
+    const x = this.parent?.width ?? 0;
+    const y = fontBoundingBoxAscent;
     this.x=x;
     this.y=y;
     this.width=width;
-    this.height=fontBoundingBoxDescent;
+    this.height=fontBoundingBoxAscent;
     return {
-      x,y,
-      w: width, h:fontBoundingBoxDescent
+      x,
+      y,
+      width: width,
+      height:this.height
     }
   }
-  pain(ctx: CanvasRenderingContext2D): void {
-    ctx.fillText(this.data, this.x, this.y, this.width);
+  paint(ctx: CanvasRenderingContext2D): void {
+    ctx.fillText(this.data, this.x, this.y);
   }
 }

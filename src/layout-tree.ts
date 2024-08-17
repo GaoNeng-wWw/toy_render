@@ -3,8 +3,8 @@ import { _Node, _Text } from "./html-parser";
 export type LayoutInfo = {
   x:number;
   y:number;
-  w:number;
-  h:number;
+  width:number;
+  height:number;
 }
 
 export class Layout{
@@ -25,8 +25,8 @@ export class Layout{
     return {
       x:this.x,
       y:this.y,
-      w:this.width,
-      h:this.height
+      width:this.width,
+      height:this.height
     }
   }
   paint(ctx: CanvasRenderingContext2D): void{}
@@ -53,15 +53,15 @@ export class InlineLayout extends Layout{
   layout(ctx: CanvasRenderingContext2D){
     for (const child of this.children){
       const info = child.layout(ctx);
-      this.width += info.w;
-      this.height = Math.max(this.height, info.h);
+      this.width += info.width;
+      this.height = Math.max(this.height, info.height);
     }
     this.x = this.parent?.width ?? 0;
     return {
       x:this.x,
       y:this.y,
-      w:this.width,
-      h:this.height
+      width:this.width,
+      height:this.height
     }
   }
   paint(ctx: CanvasRenderingContext2D): void {
@@ -79,7 +79,7 @@ export class TextLayout extends InlineLayout {
     this.parent = parnet;
     this.data = data
   }
-  layout(ctx: CanvasRenderingContext2D): { x: number; y: number; w: number; h: number; } {
+  layout(ctx: CanvasRenderingContext2D){
     const {width ,fontBoundingBoxAscent} = ctx.measureText(this.data);
     const x = this.parent?.width ?? 0;
     const y = fontBoundingBoxAscent;
@@ -88,8 +88,10 @@ export class TextLayout extends InlineLayout {
     this.width=width;
     this.height=fontBoundingBoxAscent;
     return {
-      x,y,
-      w: width, h:this.height
+      x,
+      y,
+      width: width,
+      height:this.height
     }
   }
   paint(ctx: CanvasRenderingContext2D): void {

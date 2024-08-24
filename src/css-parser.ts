@@ -1,6 +1,6 @@
 import antlr, {ParseTreeWalker} from 'antlr4';
 import Lexer from './cssParser/css3Lexer';
-import Parser, { BadPropertyContext, DeclarationContext, DeclarationListContext, DimensionContext, ExprContext, ExpressionContext, GoodCharsetContext, GoodPropertyContext, KnownDeclarationContext, SimpleSelectorSequenceContext, UnknownDeclarationContext } from './cssParser/css3Parser';
+import Parser, { BadPropertyContext, DeclarationContext, DeclarationListContext, ExprContext, GoodPropertyContext, KnownDeclarationContext, SimpleSelectorSequenceContext, UnknownDeclarationContext } from './cssParser/css3Parser';
 import css3ParserListener from './cssParser/css3ParserListener';
 
 

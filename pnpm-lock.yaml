@@ -11,6 +11,9 @@ importers:
       antlr4:
         specifier: ^4.13.2
         version: 4.13.2
+      camelcase:
+        specifier: ^8.0.0
+        version: 8.0.0
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^2.0.5
@@ -358,6 +361,10 @@ packages:
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
     engines: {node: '>=8'}
+
+  camelcase@8.0.0:
+    resolution: {integrity: sha512-8WB3Jcas3swSvjIeA2yvCJ+Miyz5l1ZmB6HFb9R1317dt9LCQoswg/BGrmAmkWVEszSrrg4RwmO46qIm2OEnSA==}
+    engines: {node: '>=16'}
 
   chai@5.1.1:
     resolution: {integrity: sha512-pT1ZgP8rPNqUgieVaEY+ryQr6Q4HXNg8Ei9UnLUrjN4IA7dvQC5JB+/kxVcPNDHyBcc/26CXPkbNzq3qwrOEKA==}
@@ -960,6 +967,8 @@ snapshots:
       balanced-match: 1.0.2
 
   cac@6.7.14: {}
+
+  camelcase@8.0.0: {}
 
   chai@5.1.1:
     dependencies:

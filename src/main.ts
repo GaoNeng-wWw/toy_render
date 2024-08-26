@@ -1,4 +1,5 @@
-import { InlineLayout, TextLayout } from "./layout-tree";
+import { CSSBackground, CSSColor, CSSFont } from "./css-rules";
+import { CharLayout, InlineLayout, TextLayout } from "./layout-tree";
 
 const canvas = document.querySelector('#canvas')! as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -13,17 +14,26 @@ observer.observe(canvas)
 function start(){
   canvas.width = width;
   canvas.height = height;
-
-
-  const inline = new InlineLayout(0,0,0,0,[],null);
-  const cn = new TextLayout(inline, '你好 ');
-  const en = new TextLayout(inline, 'hello world')
-  inline.children.push(cn,en);
-  inline.layout(ctx);
-  inline.paint(ctx);
+  const inlineLayout = new InlineLayout([],[
+    new CSSBackground('#ff0000'),
+  ]);
+  const textLayout = new TextLayout(
+    [],
+    [
+      new CSSColor('#00ff00'),
+      new CSSFont('48px sans-serifs'),
+    ]
+  )
+  const text = "hello, world";
+  let prev = null
+  for (const char of text){
+    prev = new CharLayout(char,textLayout,null,prev);
+    textLayout.children.push(prev);
+  }
+  inlineLayout.children.push(textLayout);
+  textLayout.parent = inlineLayout;
+  inlineLayout.layout(ctx);
+  inlineLayout.pain(ctx);
   requestAnimationFrame(start)
 }
-
-// start();
-
 requestAnimationFrame(start)

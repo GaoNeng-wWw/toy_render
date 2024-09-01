@@ -1,4 +1,4 @@
-import { Box, CSSLayoutRule, CSSPainRule, CSSRule, CSSFont, CSSPadding, CSSMargin } from "./css-rules";
+import { Box, CSSLayoutRule, CSSPainRule, CSSRule, CSSFont, CSSPadding, CSSMargin, CSSWidth, CSSHeight } from "./css-rules";
 
 export class LayoutInfo {
   public position: {x: number;y: number;};
@@ -73,6 +73,7 @@ export class LayoutInfo {
 export interface Layout {
   layoutInfo:LayoutInfo;
   rules: CSSRule[];
+  parent: Layout | null;
   layout(ctx: CanvasRenderingContext2D): LayoutInfo;
   pain(ctx: CanvasRenderingContext2D): void;
 }
@@ -93,14 +94,13 @@ export class TextLayout implements Layout {
       this.parent?.layoutInfo.padding.left??0
     );
     this.layoutInfo.setY(
-      this.parent?.layoutInfo.padding.top??0
+      (this.prev?.layoutInfo.position.y ?? 0) + (this.prev?.layoutInfo.height ??0)
     )
     for (const child of this.children) {
       const childLayoutInfo = child.layout(ctx);
       this.layoutInfo.incrWidth(childLayoutInfo.width);
       this.layoutInfo.setHeight(childLayoutInfo.height);
     }
-    // TODO: line-break, overflow now
     return this.layoutInfo;
   }
   pain(ctx: CanvasRenderingContext2D): void {
@@ -133,12 +133,13 @@ export class CharLayout implements Layout {
     ctx.textBaseline='bottom'
     const {width ,fontBoundingBoxAscent} = ctx.measureText(this.char);
     const x = (this.parent?.layoutInfo.position.x ?? 0)+(this.parent?.layoutInfo.width ?? 0);
-    const layoutInfo = new LayoutInfo(x,0,width,fontBoundingBoxAscent);
-    this.layoutInfo.setX(x);
-    this.layoutInfo.setY(fontBoundingBoxAscent);
     this.x=x;
     this.y=fontBoundingBoxAscent + (this.parent?.layoutInfo.position.y ?? 0);
-    return layoutInfo;
+    this.layoutInfo.setX(x)
+    .setY(this.y)
+    .setWidth(width)
+    .setHeight(fontBoundingBoxAscent)
+    return this.layoutInfo;
   }
 }
 
@@ -190,4 +191,51 @@ export class InlineLayout implements Layout {
     );
     this.children.forEach((child) => child.pain(ctx));
   }
+}
+
+export class BlockLayout implements Layout {
+  constructor(
+    public children: Layout[] = [],
+    public rules: CSSRule[] = [],
+    public parent: Layout | null = null,
+    public next: Layout | null = null,
+    public prev: Layout | null = null,
+    public layoutInfo: LayoutInfo = new LayoutInfo(),
+  ){}
+  layout(ctx: CanvasRenderingContext2D): LayoutInfo {
+    const widthRule = this.rules.filter(rule => rule instanceof CSSWidth).at(-1);
+    const heightRule = this.rules.filter(rule => rule instanceof CSSHeight).at(-1);
+    let width = widthRule?.apply().contentWidth ??0;
+    this.layoutInfo.setWidth(width);
+    let height = heightRule?.apply().contentWidth ?? 0;
+    let parent = this.parent;
+    for (const child of this.children) {
+      const childrenLayoutInfo = child.layout(ctx);
+      const {height:childrenHeight, position} = childrenLayoutInfo;
+      height = position.y + childrenHeight > height ? height + childrenHeight : height
+    }
+    this.layoutInfo.setHeight(height).setX(0);
+    if (width === 0){
+      while (parent) {
+        if (parent.layoutInfo.content.width) {
+          width = parent.layoutInfo.content.width;
+          break;
+        }
+        parent = parent.parent;
+      }
+      if (width === 0){
+        width = ctx.canvas.offsetWidth;
+      }
+    }
+    let y = this.prev ? this.prev.layoutInfo.height : this.parent?.layoutInfo.height ?? 0;
+    this.layoutInfo.setWidth(width).setY(y);
+    return this.layoutInfo;
+  }
+  pain(ctx: CanvasRenderingContext2D): void {
+    this.rules.filter((rule) => rule instanceof CSSPainRule)
+    .forEach(rule => rule.apply(ctx))
+    ctx.fillRect(this.layoutInfo.position.x, this.layoutInfo.position.y, this.layoutInfo.width, this.layoutInfo.height);
+    this.children.forEach(child => child.pain(ctx));
+  }
+
 }

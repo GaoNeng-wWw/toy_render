@@ -1,4 +1,5 @@
-import { InlineLayout, TextLayout } from "./layout-tree";
+import { CSSBackground, CSSColor, CSSFont, CSSHeight, CSSRule, CSSWidth } from "./css-rules";
+import { BlockLayout, CharLayout, InlineLayout, TextLayout } from "./layout-tree";
 
 const canvas = document.querySelector('#canvas')! as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -10,20 +11,83 @@ const observer = new ResizeObserver(() => {
 });
 observer.observe(canvas)
 
-function start(){
-  canvas.width = width;
-  canvas.height = height;
+function createText(text: string, rules: CSSRule[] = []){
+  const textLayout = new TextLayout(
+    [],
+    [
+      new CSSColor('#000000'), new CSSFont('48px sans-serifs'),
+      ...rules
+    ]
+  );
+  let prev = null
+  for (const char of text){
+    prev = new CharLayout(char,textLayout,null,prev);
+    textLayout.children.push(prev);
+  }
+  return textLayout;
+}
 
-
-  const inline = new InlineLayout(0,0,0,0,[],null);
-  const cn = new TextLayout(inline, '你好 ');
-  const en = new TextLayout(inline, 'hello world')
-  inline.children.push(cn,en);
-  inline.layout(ctx);
-  inline.paint(ctx);
+function inlineLayout(){
+  const inlineLayout = new InlineLayout([],[
+    new CSSBackground('#ff0000'),
+  ]);
+  const textLayout = new TextLayout(
+    [],
+    [
+      new CSSColor('#00ff00'),
+      new CSSFont('48px sans-serifs'),
+    ]
+  )
+  const text = "hello, world";
+  let prev = null
+  for (const char of text){
+    prev = new CharLayout(char,textLayout,null,prev);
+    textLayout.children.push(prev);
+  }
+  inlineLayout.children.push(textLayout);
+  textLayout.parent = inlineLayout;
+  inlineLayout.layout(ctx);
+  inlineLayout.pain(ctx);
   requestAnimationFrame(start)
 }
 
-// start();
+function blockLayout(){
+  const blockLayout = new BlockLayout(
+    [],
+    [
+      new CSSBackground('#ff0000'),
+      new CSSWidth(500),
+    ],
+  )
+  const c1 = new BlockLayout(
+    [],
+    [
+      new CSSBackground('#00ff00'),
+      new CSSHeight(100)
+    ],
+  )
+  const c2 = new BlockLayout([],
+    [
+      new CSSBackground('#0000ff'),
+      new CSSHeight(50)
+    ],
+  )
+  const t = createText('hello-world', [new CSSColor('#ffff00')]);
+  blockLayout.children.push(c1, c2, t);
+  t.prev = c2;
+  c2.prev = c1;
+  c1.parent = blockLayout;
+  c2.parent = blockLayout;
+  t.parent = blockLayout;
+  blockLayout.layout(ctx);
+  blockLayout.pain(ctx)
+}
 
+function start(){
+  canvas.width = width;
+  canvas.height = height;
+  blockLayout();
+  requestAnimationFrame(start)
+}
+start()
 requestAnimationFrame(start)

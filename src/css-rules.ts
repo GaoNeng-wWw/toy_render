@@ -38,7 +38,7 @@ export class CSSColor extends CSSPainRule {
     this.hex = hex;
   }
   apply(ctx: CanvasRenderingContext2D): string {
-    ctx.fillStyle = ctx;
+    ctx.fillStyle = this.hex;
     return this.hex;
   }
 }
@@ -48,9 +48,30 @@ export type Box = {
   right?:number;
   bottom?:number;
   left?:number;
+  x?:number;
+  y?:number;
 }
 
-export class CSSLayoutRule extends CSSRule {}
+export class CSSLayoutRule extends CSSRule {
+  constructor(
+    protected value: any,
+  ){
+    super(value);
+  }
+  apply(ctx: CanvasRenderingContext2D) {}
+}
+
+export class CSSFont extends CSSLayoutRule{
+  constructor(
+    private size:string
+  ){
+    super(size);
+  }
+  apply(ctx: CanvasRenderingContext2D): string {
+    ctx.font = this.size;
+    return this.size;
+  }
+}
 
 export class CSSWidth extends CSSLayoutRule {
   constructor(
@@ -84,18 +105,18 @@ export class CSSHeight extends CSSLayoutRule {
 
 export class CSSPadding extends CSSLayoutRule {
   constructor(
-    private box:Box = {}
+    private box:Box = {top: 0, right: 0, bottom: 0, left: 0,x:0,y:0}
   ){
     super(box);
     this.box=box;
   }
   apply() {
-    const {top,right,bottom,left} = this.box ?? {top: 0, right: 0, bottom: 0, left: 0};
+    const {top,right,bottom,left,x,y} = this.box;
     return {
-      top: top ?? bottom ?? 0,
-      right: right ?? left ?? 0,
-      bottom: bottom ?? top ?? 0,
-      left: left ?? right ?? 0
+      top: y ?? top ?? 0,
+      right: x ?? right ?? 0,
+      bottom: y ??bottom ?? 0,
+      left: x ?? left ?? 0
     }
   }
 }
@@ -110,10 +131,10 @@ export class CSSMargin extends CSSLayoutRule {
   apply() {
     const {top,right,bottom,left} = this.box ?? {top: 0, right: 0, bottom: 0, left: 0};
     return {
-      top: top ?? bottom ?? 0,
-      right: right ?? left ?? 0,
-      bottom: bottom ?? top ?? 0,
-      left: left ?? right ?? 0
+      top: top ?? 0,
+      right: right ?? 0,
+      bottom: bottom ?? 0,
+      left: left ?? 0,
     }
   }
 }

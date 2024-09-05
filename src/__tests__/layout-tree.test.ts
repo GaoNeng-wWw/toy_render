@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { CharLayout, InlineLayout, TextLayout } from "../layout-tree";
-import { CSSRule } from "../css-rules";
+import { CSSMargin, CSSPadding, CSSRule } from "../css-rules";
 import { createCavnas } from "./createCanvas";
 
 function createText(text: string, rules: CSSRule[] = []){
@@ -96,17 +96,70 @@ describe('layout',()=>{
        * height = padding.top + content.height + padding.bottom
        * width = padding.left + content.width + padding.right
        */
-      test.todo('inline width/height (padding)', ()=>{});
-      test.todo('inline width/height (margin)', ()=>{});
+      test('inline width/height (padding)', ()=>{
+        const padding = new CSSPadding({y: 16, x: 16});
+        const box = padding.apply();
+        expect(box.top).toBe(16)
+        expect(box.bottom).toBe(16);
+        expect(box.left).toBe(16)
+        expect(box.right).toBe(16);
+        const a = new InlineLayout([],[
+          new CSSPadding({y: 16, x:16}),
+        ])
+        const {ctx} = createCavnas();
+        a.layout(ctx);
+        a.pain(ctx);
+        expect(a.layoutInfo.width).toBe(32)
+        expect(a.layoutInfo.height).toBe(32)
+        expect(a.layoutInfo.padding.top).toBe(16)
+        expect(a.layoutInfo.padding.bottom).toBe(16)
+      });
+      test('inline width/height (margin)', ()=>{
+        const a = new InlineLayout([],[
+          new CSSMargin({y: 16, x:16}),
+        ])
+        const {ctx} = createCavnas();
+        a.layout(ctx);
+        a.pain(ctx);
+        expect(a.layoutInfo.width).toBe(0)
+        expect(a.layoutInfo.height).toBe(0)
+        console.log(a.layoutInfo.margin)
+        expect(a.layoutInfo.margin.top).toBe(16)
+        expect(a.layoutInfo.margin.bottom).toBe(16)
+      });
 
       /**
        * if have mutiple padding, just use last padding
        */
-      test.todo('inline width/height (mutiple padding)', ()=>{});
-            /**
+      test('inline width/height (mutiple padding)', ()=>{
+        const a = new InlineLayout([],[
+          new CSSPadding({y: 16, x:16}),
+          new CSSPadding({y: 8, x:8}),
+        ])
+        const {ctx} = createCavnas();
+        a.layout(ctx);
+        a.pain(ctx);
+        expect(a.layoutInfo.width).toBe(16)
+        expect(a.layoutInfo.height).toBe(16)
+        expect(a.layoutInfo.padding.top).toBe(8)
+        expect(a.layoutInfo.padding.bottom).toBe(8)
+      });
+      /**
        * if have mutiple margin, just use last margin
        */
-      test.todo('inline width/height (mutiple margin)', ()=>{});
+      test('inline width/height (mutiple margin)', ()=>{
+        const a = new InlineLayout([],[
+          new CSSMargin({y: 16, x:16}),
+          new CSSMargin({y: 8, x:8}),
+        ])
+        const {ctx} = createCavnas();
+        a.layout(ctx);
+        a.pain(ctx);
+        expect(a.layoutInfo.width).toBe(0)
+        expect(a.layoutInfo.height).toBe(0)
+        expect(a.layoutInfo.margin.top).toBe(8)
+        expect(a.layoutInfo.margin.bottom).toBe(8)
+      });
 
       describe('children position', ()=>{
         test.todo('non padding')

@@ -129,12 +129,12 @@ export class CSSMargin extends CSSLayoutRule {
     this.box=box;
   }
   apply() {
-    const {top,right,bottom,left} = this.box ?? {top: 0, right: 0, bottom: 0, left: 0};
+    const {top,right,bottom,left, x, y} = this.box ?? {top: 0, right: 0, bottom: 0, left: 0};
     return {
-      top: top ?? 0,
-      right: right ?? 0,
-      bottom: bottom ?? 0,
-      left: left ?? 0,
+      top: y ?? top ?? 0,
+      right: x ?? right ?? 0,
+      bottom: y ??bottom ?? 0,
+      left: x ?? left ?? 0
     }
   }
 }

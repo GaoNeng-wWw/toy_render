@@ -134,11 +134,11 @@ export class CharLayout implements Layout {
     const {width ,fontBoundingBoxAscent} = ctx.measureText(this.char);
     const x = (this.parent?.layoutInfo.position.x ?? 0)+(this.parent?.layoutInfo.width ?? 0);
     this.x=x;
-    this.y=fontBoundingBoxAscent + (this.parent?.layoutInfo.position.y ?? 0);
+    this.y=Math.abs(fontBoundingBoxAscent) + (this.parent?.layoutInfo.position.y ?? 0);
     this.layoutInfo.setX(x)
     .setY(this.y)
     .setWidth(width)
-    .setHeight(fontBoundingBoxAscent)
+    .setHeight(Math.abs(fontBoundingBoxAscent))
     return this.layoutInfo;
   }
 }

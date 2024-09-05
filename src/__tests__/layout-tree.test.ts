@@ -123,7 +123,6 @@ describe('layout',()=>{
         a.pain(ctx);
         expect(a.layoutInfo.width).toBe(0)
         expect(a.layoutInfo.height).toBe(0)
-        console.log(a.layoutInfo.margin)
         expect(a.layoutInfo.margin.top).toBe(16)
         expect(a.layoutInfo.margin.bottom).toBe(16)
       });
@@ -161,10 +160,22 @@ describe('layout',()=>{
         expect(a.layoutInfo.margin.bottom).toBe(8)
       });
 
+      // fontBoundingBoxAscent not support
       describe('children position', ()=>{
-        test.todo('non padding')
-        test.todo('non margin')
-        test.todo('padding')
+        test.skip('non padding & non margin', ()=>{
+          const text = createText('hello-world');
+          const inline = new InlineLayout([
+            text
+          ]);
+          text.parent = inline;
+          const {ctx} = createCavnas();
+          inline.layout(ctx);
+          expect(inline.layoutInfo.width).toBe(text.layoutInfo.width)
+          console.log(text.layoutInfo)
+        })
+        test.todo('padding', ()=>{
+
+        })
         test.todo('margin')
       })
     })

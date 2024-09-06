@@ -209,6 +209,14 @@ export class BlockLayout implements Layout {
   layout(ctx: CanvasRenderingContext2D): LayoutInfo {
     const widthRule = this.rules.filter(rule => rule instanceof CSSWidth).at(-1);
     const heightRule = this.rules.filter(rule => rule instanceof CSSHeight).at(-1);
+    const paddingRule = this.rules.filter(rule=>rule instanceof CSSPadding).at(-1);
+    const marginRule = this.rules.filter(rule => rule instanceof CSSMargin).at(-1);
+    if (paddingRule){
+      this.layoutInfo.setPadding(paddingRule.apply());
+    }
+    if (marginRule){
+      this.layoutInfo.setMargin(marginRule.apply());
+    }
     let width = widthRule?.apply().contentWidth ??0;
     this.layoutInfo.setWidth(width);
     let height = heightRule?.apply().contentWidth ?? 0;

@@ -170,11 +170,15 @@ export class InlineLayout implements Layout {
       width += childLayoutInfo.width;
       height = Math.max(height, childLayoutInfo.height);
     }
+    const x = this.prev ?
+      this.prev.layoutInfo.position.x + this.prev.layoutInfo.width : 
+      this.parent?.layoutInfo.padding.left??0 + (this.parent?.layoutInfo.margin.left??0);
+    const y = this.prev ? this.prev.layoutInfo.position.y : (this.parent?.layoutInfo.padding.top??0) + (this.parent?.layoutInfo.margin.top??0);
     layoutInfo
     .setWidth(width)
     .setHeight(height)
-    .setX(this.parent?.layoutInfo.width ?? 0)
-    .setY(0);
+    .setX(x ?? 0)
+    .setY(y);
     return layoutInfo;
   }
   pain(ctx: CanvasRenderingContext2D): void {

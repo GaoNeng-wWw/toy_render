@@ -173,10 +173,89 @@ describe('layout',()=>{
           expect(inline.layoutInfo.width).toBe(text.layoutInfo.width)
           console.log(text.layoutInfo)
         })
-        test.todo('padding', ()=>{
-
+        describe('padding', ()=>{
+          test('x/y', ()=>{
+            const {ctx} = createCavnas();
+            const a = new InlineLayout([],[
+              new CSSPadding({x: 16,y: 16}),
+            ])
+            const b = new InlineLayout([]);
+            a.children.push(b);
+            b.parent = a;
+            a.layout(ctx);
+            expect(b.layoutInfo.position.x).toBe(16)
+            expect(b.layoutInfo.position.y).toBe(16)
+          })
+          test('only top',()=>{
+            const {ctx} = createCavnas();
+            const a = new InlineLayout([],[
+              new CSSPadding({top: 16}),
+            ])
+            const b = new InlineLayout([]);
+            a.children.push(b);
+            b.parent = a;
+            a.layout(ctx);
+            expect(b.layoutInfo.position.y).toBe(16)
+          })
+          test('only left',()=>{
+            const {ctx} = createCavnas();
+            const a = new InlineLayout([],[
+              new CSSPadding({left: 16}),
+            ])
+            const b = new InlineLayout([]);
+            a.children.push(b);
+            b.parent = a;
+            a.layout(ctx);
+            expect(b.layoutInfo.position.x).toBe(16)
+          })
+          test('right or bottom should not affect children element position',()=>{
+            const {ctx} = createCavnas();
+            const a = new InlineLayout([],[
+              new CSSPadding({right: 16, bottom: 16}),
+            ])
+            const b = new InlineLayout([]);
+            a.children.push(b);
+            b.parent = a;
+            a.layout(ctx);
+            expect(b.layoutInfo.position.x).toBe(0)
+            expect(b.layoutInfo.position.y).toBe(0)
+          })
         })
-        test.todo('margin')
+        describe('margin', ()=>{
+          test('x/y', ()=>{
+            const {ctx} = createCavnas();
+            const a = new InlineLayout([],[
+              new CSSMargin({x: 16,y: 16}),
+            ])
+            const b = new InlineLayout([]);
+            a.children.push(b);
+            b.parent = a;
+            a.layout(ctx);
+            expect(b.layoutInfo.position.y).toBe(16)
+          })
+          test('only top/left', ()=>{
+            const {ctx} = createCavnas();
+            const a = new InlineLayout([],[
+              new CSSMargin({top: 16,left:16}),
+            ])
+            const b = new InlineLayout([]);
+            a.children.push(b);
+            b.parent = a;
+            a.layout(ctx);
+            expect(b.layoutInfo.position.y).toBe(16)
+          })
+          test('right or bottom should not affect children element position', ()=>{
+            const {ctx} = createCavnas();
+            const a = new InlineLayout([],[
+              new CSSMargin({bottom: 16, right:16}),
+            ])
+            const b = new InlineLayout([]);
+            a.children.push(b);
+            b.parent = a;
+            a.layout(ctx);
+            expect(b.layoutInfo.position.y).toBe(0)
+          })
+        })
       })
     })
   })

@@ -223,8 +223,9 @@ export class BlockLayout implements Layout {
     let parent = this.parent;
     for (const child of this.children) {
       const childrenLayoutInfo = child.layout(ctx);
-      const {height:childrenHeight, position} = childrenLayoutInfo;
+      const {height:childrenHeight, position, width:childrenWidth} = childrenLayoutInfo;
       height = position.y + childrenHeight > height ? height + childrenHeight : height
+      width = childrenWidth;
     }
     this.layoutInfo.setHeight(height).setX(0);
     if (width === 0){

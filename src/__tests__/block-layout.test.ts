@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { createCavnas } from "./createCanvas";
-import { BlockLayout } from "../layout-tree";
-import { CSSHeight, CSSMargin, CSSPadding, CSSWidth } from "../css-rules";
+import { BlockLayout, CharLayout, InlineLayout, TextLayout } from "../layout-tree";
+import { CSSHeight, CSSMargin, CSSPadding, CSSRule, CSSWidth } from "../css-rules";
+
+function createText(text: string, rules: CSSRule[] = []){
+  const textLayout = new TextLayout(
+    [],
+    [...rules]
+  );
+  let prev = null
+  for (const char of text){
+    prev = new CharLayout(char,textLayout,null,prev);
+    textLayout.children.push(prev);
+  }
+  return textLayout;
+}
 
 describe('block layout', ()=>{
   /**
@@ -75,10 +88,53 @@ describe('block layout', ()=>{
     })
   })
   describe('children', ()=>{
-    it.todo('width')
-    it.todo('height')
-    it.todo('width (parent non padding)')
-    it.todo('height (parent non padding)')
+    it('width (parent non padding)',()=>{
+      const {ctx} = createCavnas();
+      const t = createText('hello-world');
+      const a = new InlineLayout()
+      const b = new BlockLayout([]);
+      // const b2 = new BlockLayout([]);
+      const c = new BlockLayout([]);
+      t.parent = a;
+      a.parent = b;
+      b.parent = c;
+      // b2.parent = c;
+      a.children.push(t);
+      b.children.push(a);
+      // FIXME
+      c.children.push(b, /*b2*/);
+      c.layout(ctx);
+      expect(a.layoutInfo.width).toBe(t.layoutInfo.width);
+      expect(b.layoutInfo.width).toBe(a.layoutInfo.width);
+      // FIXME
+      // expect(b2.layoutInfo.width).toBe(a.layoutInfo.width);
+      expect(c.layoutInfo.width).toBe(b.layoutInfo.width);
+    })
+    it('height (parent non padding)', ()=>{
+      const a = new BlockLayout([], [
+        new CSSWidth(200),
+      ]);
+      const b = new BlockLayout([],[
+        new CSSHeight(100)
+      ]);
+      const b2 = new BlockLayout([],[
+        new CSSHeight(100)
+      ]);
+      const c = new BlockLayout([],[
+        new CSSHeight(50)
+      ]);
+      b.parent = a;
+      b2.parent = a;
+      c.parent = b;
+      b.prev = null;
+      b2.prev = b;
+
+      a.children.push(b,b2);
+      b.children.push(c);
+      const {ctx} = createCavnas();
+      a.layout(ctx);
+      expect(a.layoutInfo.height).toBe(200)
+    })
     it.todo('width (parent padding)')
     it.todo('height (parent padding)')
     it.todo('width (parent margin)')

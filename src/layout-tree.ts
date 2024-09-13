@@ -134,11 +134,11 @@ export class CharLayout implements Layout {
     const {width ,fontBoundingBoxAscent} = ctx.measureText(this.char);
     const x = (this.parent?.layoutInfo.position.x ?? 0)+(this.parent?.layoutInfo.width ?? 0);
     this.x=x;
-    this.y=fontBoundingBoxAscent + (this.parent?.layoutInfo.position.y ?? 0);
+    this.y=Math.abs(fontBoundingBoxAscent) + (this.parent?.layoutInfo.position.y ?? 0);
     this.layoutInfo.setX(x)
     .setY(this.y)
     .setWidth(width)
-    .setHeight(fontBoundingBoxAscent)
+    .setHeight(Math.abs(fontBoundingBoxAscent))
     return this.layoutInfo;
   }
 }
@@ -160,21 +160,25 @@ export class InlineLayout implements Layout {
     const paddingRule = this.rules.filter(rule=>rule instanceof CSSPadding).at(-1);
     const marginRule = this.rules.filter(rule => rule instanceof CSSMargin).at(-1);
     if (paddingRule){
-      layoutInfo.setPadding(paddingRule.apply());
+      layoutInfo.setPadding(paddingRule.apply(ctx));
     }
     if (marginRule){
-      layoutInfo.setMargin(marginRule.apply());
+      layoutInfo.setMargin(marginRule.apply(ctx));
     }
     for (const child of this.children) {
       const childLayoutInfo = child.layout(ctx);
       width += childLayoutInfo.width;
       height = Math.max(height, childLayoutInfo.height);
     }
+    const x = this.prev ?
+      this.prev.layoutInfo.position.x + this.prev.layoutInfo.width : 
+      this.parent?.layoutInfo.padding.left??0 + (this.parent?.layoutInfo.margin.left??0);
+    const y = this.prev ? this.prev.layoutInfo.position.y : (this.parent?.layoutInfo.padding.top??0) + (this.parent?.layoutInfo.margin.top??0);
     layoutInfo
     .setWidth(width)
     .setHeight(height)
-    .setX(this.parent?.layoutInfo.width ?? 0)
-    .setY(0);
+    .setX(x ?? 0)
+    .setY(y);
     return layoutInfo;
   }
   pain(ctx: CanvasRenderingContext2D): void {
@@ -205,14 +209,23 @@ export class BlockLayout implements Layout {
   layout(ctx: CanvasRenderingContext2D): LayoutInfo {
     const widthRule = this.rules.filter(rule => rule instanceof CSSWidth).at(-1);
     const heightRule = this.rules.filter(rule => rule instanceof CSSHeight).at(-1);
-    let width = widthRule?.apply().contentWidth ??0;
+    const paddingRule = this.rules.filter(rule=>rule instanceof CSSPadding).at(-1);
+    const marginRule = this.rules.filter(rule => rule instanceof CSSMargin).at(-1);
+    if (paddingRule){
+      this.layoutInfo.setPadding(paddingRule.apply(ctx));
+    }
+    if (marginRule){
+      this.layoutInfo.setMargin(marginRule.apply(ctx));
+    }
+    let width = widthRule?.apply(ctx).contentWidth ??0;
     this.layoutInfo.setWidth(width);
-    let height = heightRule?.apply().contentWidth ?? 0;
+    let height = heightRule?.apply(ctx).contentWidth ?? 0;
     let parent = this.parent;
     for (const child of this.children) {
       const childrenLayoutInfo = child.layout(ctx);
-      const {height:childrenHeight, position} = childrenLayoutInfo;
+      const {height:childrenHeight, position, width:childrenWidth} = childrenLayoutInfo;
       height = position.y + childrenHeight > height ? height + childrenHeight : height
+      width = childrenWidth;
     }
     this.layoutInfo.setHeight(height).setX(0);
     if (width === 0){
@@ -227,7 +240,10 @@ export class BlockLayout implements Layout {
         width = ctx.canvas.offsetWidth;
       }
     }
-    let y = this.prev ? this.prev.layoutInfo.height : this.parent?.layoutInfo.height ?? 0;
+    let y = this.prev ? (
+      this.prev.layoutInfo.height + this.prev.layoutInfo.position.y + (this.prev.layoutInfo.margin.y ?? 0)
+    ) : (
+      this.parent?.layoutInfo.content.height ?? 0) + (this.parent?.layoutInfo.padding.top ?? 0) + (this.parent?.layoutInfo.margin.top ?? 0)
     this.layoutInfo.setWidth(width).setY(y);
     return this.layoutInfo;
   }

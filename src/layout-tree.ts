@@ -160,10 +160,10 @@ export class InlineLayout implements Layout {
     const paddingRule = this.rules.filter(rule=>rule instanceof CSSPadding).at(-1);
     const marginRule = this.rules.filter(rule => rule instanceof CSSMargin).at(-1);
     if (paddingRule){
-      layoutInfo.setPadding(paddingRule.apply());
+      layoutInfo.setPadding(paddingRule.apply(ctx));
     }
     if (marginRule){
-      layoutInfo.setMargin(marginRule.apply());
+      layoutInfo.setMargin(marginRule.apply(ctx));
     }
     for (const child of this.children) {
       const childLayoutInfo = child.layout(ctx);
@@ -212,14 +212,14 @@ export class BlockLayout implements Layout {
     const paddingRule = this.rules.filter(rule=>rule instanceof CSSPadding).at(-1);
     const marginRule = this.rules.filter(rule => rule instanceof CSSMargin).at(-1);
     if (paddingRule){
-      this.layoutInfo.setPadding(paddingRule.apply());
+      this.layoutInfo.setPadding(paddingRule.apply(ctx));
     }
     if (marginRule){
-      this.layoutInfo.setMargin(marginRule.apply());
+      this.layoutInfo.setMargin(marginRule.apply(ctx));
     }
-    let width = widthRule?.apply().contentWidth ??0;
+    let width = widthRule?.apply(ctx).contentWidth ??0;
     this.layoutInfo.setWidth(width);
-    let height = heightRule?.apply().contentWidth ?? 0;
+    let height = heightRule?.apply(ctx).contentWidth ?? 0;
     let parent = this.parent;
     for (const child of this.children) {
       const childrenLayoutInfo = child.layout(ctx);
@@ -240,7 +240,10 @@ export class BlockLayout implements Layout {
         width = ctx.canvas.offsetWidth;
       }
     }
-    let y = this.prev ? this.prev.layoutInfo.height : this.parent?.layoutInfo.height ?? 0;
+    let y = this.prev ? (
+      this.prev.layoutInfo.height + this.prev.layoutInfo.position.y + (this.prev.layoutInfo.margin.y ?? 0)
+    ) : (
+      this.parent?.layoutInfo.content.height ?? 0) + (this.parent?.layoutInfo.padding.top ?? 0) + (this.parent?.layoutInfo.margin.top ?? 0)
     this.layoutInfo.setWidth(width).setY(y);
     return this.layoutInfo;
   }

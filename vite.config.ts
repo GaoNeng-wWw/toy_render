@@ -4,6 +4,9 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   test: {
     environment: 'jsdom',
-    reporters: 'verbose'
+    reporters: 'verbose',
+    coverage: {
+      exclude: ["src/cssParser/**/*", "vite.config.ts", "vitest.setup.ts", "src/main.ts", "src/css-parser.ts"]
+    }
   }
 })

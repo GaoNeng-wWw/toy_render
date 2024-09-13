@@ -135,13 +135,126 @@ describe('block layout', ()=>{
       a.layout(ctx);
       expect(a.layoutInfo.height).toBe(200)
     })
-    it.todo('width (parent padding)')
-    it.todo('height (parent padding)')
-    it.todo('width (parent margin)')
-    it.todo('height (parent margin)')
+    it('width (parent padding)', () => {
+      const a = new BlockLayout([], [
+        new CSSPadding({x: 16})
+      ]);
+      const b = new BlockLayout([],[
+        new CSSWidth(100),
+        new CSSHeight(100)
+      ]);
+      a.children.push(b);
+      b.parent = a;
+      const {ctx} = createCavnas();
+      a.layout(ctx);
+      expect(a.layoutInfo.width).toBe(b.layoutInfo.width + 32)
+      expect(b.layoutInfo.width).toBe(100)
+    })
+    it('height (parent padding)', ()=>{
+      const a = new BlockLayout([], [
+        new CSSPadding({y: 16})
+      ]);
+      const b = new BlockLayout([],[
+        new CSSWidth(100),
+        new CSSHeight(100)
+      ]);
+      a.children.push(b);
+      b.parent = a;
+      const {ctx} = createCavnas();
+      a.layout(ctx);
+      expect(a.layoutInfo.height).toBe(b.layoutInfo.height + 32)
+      expect(b.layoutInfo.height).toBe(100)
+    })
+    it('width (parent margin)', () => {
+      const a = new BlockLayout([], [
+        new CSSMargin({x: 16})
+      ]);
+      const b = new BlockLayout([],[
+        new CSSWidth(100),
+        new CSSHeight(100)
+      ]);
+      a.children.push(b);
+      b.parent = a;
+      const {ctx} = createCavnas();
+      a.layout(ctx);
+      expect(a.layoutInfo.width).toBe(b.layoutInfo.width)
+      expect(b.layoutInfo.width).toBe(100)
+    })
+    it('height (parent margin)', () => {
+      const a = new BlockLayout([], [
+        new CSSMargin({y: 16})
+      ]);
+      const b = new BlockLayout([],[
+        new CSSWidth(100),
+        new CSSHeight(100)
+      ]);
+      a.children.push(b);
+      b.parent = a;
+      const {ctx} = createCavnas();
+      a.layout(ctx);
+      expect(a.layoutInfo.height).toBe(b.layoutInfo.height)
+      expect(b.layoutInfo.height).toBe(100)
+    })
 
-    it.todo('first children top (parent non padding,parent non margin)')
-    it.todo('first children top (parent padding, parent non margin)')
-    it.todo('first children top (parent padding, parent margin)')
+    it('children top (parent non padding,parent non margin)', ()=>{
+      const a = new BlockLayout([], [
+        new CSSWidth(100)
+      ]);
+      const b = new BlockLayout([], [
+        new CSSHeight(100),
+        new CSSWidth(100)
+      ]);
+      const c = new BlockLayout([], [
+        new CSSHeight(100)
+      ])
+      a.children.push(b,c);
+      b.parent = a;
+      c.parent = a;
+      expect(b.layoutInfo.position.y).toBe(a.layoutInfo.position.y);
+      expect(c.layoutInfo.position.y).toBe(b.layoutInfo.position.y + b.layoutInfo.height)
+    })
+    it('children top (parent padding, parent non margin)',() => {
+      const a = new BlockLayout([], [
+        new CSSWidth(100),
+        new CSSPadding({y: 16})
+      ]);
+      const b = new BlockLayout([], [
+        new CSSHeight(100),
+        new CSSWidth(100)
+      ]);
+      const c = new BlockLayout([], [
+        new CSSHeight(100)
+      ])
+      a.children.push(b,c);
+      b.parent = a;
+      c.parent = a;
+      c.prev = b;
+      const {ctx} = createCavnas();
+      a.layout(ctx)
+      expect(b.layoutInfo.position.y).toBe(a.layoutInfo.position.y + 16)
+      expect(c.layoutInfo.position.y).toBe(b.layoutInfo.position.y + b.layoutInfo.height)
+    })
+    it('first children top (parent padding, parent margin)', () => {
+      const a = new BlockLayout([], [
+        new CSSWidth(100),
+        new CSSPadding({y: 16}),
+        new CSSMargin({y: 16})
+      ]);
+      const b = new BlockLayout([], [
+        new CSSHeight(100),
+        new CSSWidth(100)
+      ]);
+      const c = new BlockLayout([], [
+        new CSSHeight(100)
+      ])
+      a.children.push(b,c);
+      b.parent = a;
+      c.parent = a;
+      c.prev = b;
+      const {ctx} = createCavnas();
+      a.layout(ctx)
+      expect(b.layoutInfo.position.y).toBe(32);
+      expect(c.layoutInfo.position.y).toBe(132);
+    })
   })
 })

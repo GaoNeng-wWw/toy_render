@@ -2,6 +2,7 @@ export class CSSRule {
   constructor(protected value: any){
     this.value = value;
   }
+  apply(ctx: CanvasRenderingContext2D): any{}
 }
 
 export class CSSPainRule extends CSSRule {

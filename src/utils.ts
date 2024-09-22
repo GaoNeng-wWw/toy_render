@@ -1,0 +1,1 @@
+export const $default = <T>(val: T | undefined, defaultValue: T) => val ?? defaultValue;

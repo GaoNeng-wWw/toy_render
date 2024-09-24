@@ -1,3 +1,4 @@
+import { CSSLayoutRule, CSSPainRule, CSSRule } from "./css-rules";
 import { $default } from "./utils";
 
 export class Position {
@@ -38,7 +39,8 @@ export class Layout {
     public children: Layout[] = [],
     public position: Position = new Position(),
     public prev: Layout | null = null,
-    public parent: Layout | null = null
+    public parent: Layout | null = null,
+    public styles: CSSRule[] = []
   ) { }
   layout(ctx: CanvasRenderingContext2D) { }
   pain(ctx: CanvasRenderingContext2D) { }
@@ -89,6 +91,9 @@ export class TextLayout extends Layout {
     this.children = charLayoutNodes;
   }
   layout(ctx: CanvasRenderingContext2D): void {
+    console.log(this.styles);
+    this.styles.filter(style => style instanceof CSSLayoutRule)
+      .forEach(style => style.apply(ctx));
     for (const node of this.children) {
       node.layout(ctx);
       const { offsetWidth, offsetHeight } = node;
@@ -97,6 +102,8 @@ export class TextLayout extends Layout {
     }
   }
   pain(ctx: CanvasRenderingContext2D): void {
+    this.styles.filter((style) => style instanceof CSSPainRule)
+      .forEach((style) => style.apply(ctx));
     this.children.forEach(child => child.pain(ctx));
   }
 }

@@ -1,4 +1,4 @@
-import { $default } from "../utils";
+import { $default } from "./utils";
 
 export class Position {
   constructor(
@@ -61,22 +61,10 @@ export class CharLayout extends Layout {
     this.position.x = $default(this.parent?.content.width, 0);
     if (!this.prev) {
       const parent = this.parent;
-      /**
-       * 
-        BROWSER TOP
-          -----
-            | OFFSET TOP
-          -----
-  ML PL MTMTMTMTMT PR MR
-  ML PL PTPTPTPTPT PR MR
-  ML PL CCCCCCCCCC PR MR
-  ML PL PBPBPBPBPB PR MR
-  ML PL MBMBMBMBMB PR MR
-       */
       const y = $default(parent?.position.y, 0) + $default(parent?.margin.top, 0) + $default(parent?.padding.top, 0);
-      this.position.y = y;
+      this.position.y = fontBoundingBoxAscent + y;
     } else {
-      this.position.y = this.prev?.position.y ?? 0;
+      this.position.y = this.prev?.position.y;
     }
   }
   pain(ctx: CanvasRenderingContext2D): void {

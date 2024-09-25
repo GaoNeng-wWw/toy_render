@@ -4,6 +4,12 @@ export class Position {
     public x: number = 0,
     public y: number = 0
   ) { }
+  toJSON() {
+    return { x: this.x, y: this.y }
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
+  }
 }
 export class RectBox {
   public top: number;
@@ -29,6 +35,12 @@ export class Area {
     public x: number = 0,
     public y: number = 0,
   ) { }
+  toJSON() {
+    return { width: this.width, height: this.height, x: this.x, y: this.y }
+  }
+  toString() {
+    return JSON.stringify(this.toJSON());
+  }
 }
 
 export class Layout {
@@ -102,6 +114,8 @@ export class BlockLayout extends Layout {
     } else {
       this.position.y = 0;
     }
+    this.content.x = this.position.x;
+    this.content.y = this.position.y;
     for (const child of this.children) {
       child.layout(ctx);
       if (heightUnset) {

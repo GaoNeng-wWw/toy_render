@@ -1,6 +1,4 @@
-import { CSSLayoutRule, CSSPainRule, CSSRule } from "./css-rules";
-import { $default } from "./utils";
-
+import { CSSBoxSizing, CSSHeight, CSSMargin, CSSPadding, CSSPainRule, CSSRule, CSSWidth } from "./css-rules";
 export class Position {
   constructor(
     public x: number = 0,
@@ -28,6 +26,8 @@ export class Area {
   constructor(
     public width: number = 0,
     public height: number = 0,
+    public x: number = 0,
+    public y: number = 0,
   ) { }
 }
 
@@ -40,7 +40,8 @@ export class Layout {
     public position: Position = new Position(),
     public prev: Layout | null = null,
     public parent: Layout | null = null,
-    public styles: CSSRule[] = []
+    public styles: CSSRule[] = [],
+    public id: string = '',
   ) { }
   layout(ctx: CanvasRenderingContext2D) { }
   pain(ctx: CanvasRenderingContext2D) { }
@@ -52,58 +53,74 @@ export class Layout {
   }
 }
 
-export class CharLayout extends Layout {
-  constructor(private readonly char: string) {
+export class BlockLayout extends Layout {
+  constructor() {
     super();
   }
-  layout(ctx: CanvasRenderingContext2D): void {
-    const { width, fontBoundingBoxAscent } = ctx.measureText(this.char);
-    this.content.width = width;
-    this.content.height = fontBoundingBoxAscent;
-    this.position.x = $default(this.parent?.content.width, 0);
-    if (!this.prev) {
-      const parent = this.parent;
-      const y = $default(parent?.position.y, 0) + $default(parent?.margin.top, 0) + $default(parent?.padding.top, 0);
-      this.position.y = fontBoundingBoxAscent + y;
-    } else {
-      this.position.y = this.prev?.position.y;
+  // 返回一个最近设置宽度的祖先
+  private findParent(ctx: CanvasRenderingContext2D) {
+    while (this.parent && this.parent.content.width === undefined) {
+      this.parent = this.parent.parent;
     }
+    return !this.parent ? ctx.canvas.offsetWidth : this.parent.content.width;
   }
-  pain(ctx: CanvasRenderingContext2D): void {
-    ctx.fillText(
-      this.char, this.position.x, this.position.y
-    )
-  }
-}
+  layout(ctx: CanvasRenderingContext2D): void {
+    const widthStyle = this.styles.filter(style => style instanceof CSSWidth).at(-1);
+    const heightStyle = this.styles.filter(style => style instanceof CSSHeight).at(-1);
+    const paddingStyles = this.styles.filter(style => style instanceof CSSPadding).at(-1);
+    const marginStyles = this.styles.filter(style => style instanceof CSSMargin).at(-1);
 
-export class TextLayout extends Layout {
-  constructor(private readonly text: string) {
-    super();
-    const charLayoutNodes: CharLayout[] = [];
-    for (let i = 0; i < this.text.length; i++) {
-      const node = new CharLayout(this.text[i]);
-      if (charLayoutNodes.length > 1) {
-        node.prev = charLayoutNodes[i - 1];
-      }
-      node.parent = this;
-      charLayoutNodes.push(node);
+    this.content.x = this.parent?.content.x ?? 0;
+    this.content.y = this.parent?.content.y ?? 0;
+    if (marginStyles) {
+      this.margin = marginStyles?.apply();
+      this.content.x += this.margin.left;
+      this.content.y += this.margin.top
     }
-    this.children = charLayoutNodes;
-  }
-  layout(ctx: CanvasRenderingContext2D): void {
-    console.log(this.styles);
-    this.styles.filter(style => style instanceof CSSLayoutRule)
-      .forEach(style => style.apply(ctx));
-    for (const node of this.children) {
-      node.layout(ctx);
-      const { offsetWidth, offsetHeight } = node;
-      this.content.width += offsetWidth;
-      this.content.height = Math.max(this.content.height, offsetHeight);
+    if (paddingStyles) {
+      this.padding = paddingStyles.apply();
+      this.content.x += this.padding.left;
+      this.content.y += this.padding.top
+    }
+
+    if (widthStyle) {
+      this.content.width = widthStyle.apply().contentWidth;
+    } else {
+      const width = this.findParent(ctx)
+      this.content.width = width;
+    }
+    const boxSizing = this.styles.filter(style => style instanceof CSSBoxSizing).at(-1);
+    if (boxSizing) {
+      const { width, height } = boxSizing.calc(this.content, this.padding)
+      this.content.width = width;
+      this.content.height = height;
+    }
+    let heightUnset = true;
+    if (heightStyle) {
+      this.content.height = heightStyle.apply().contentHeight;
+      heightUnset = false;
+    }
+    if (this.prev) {
+      this.position.y = this.prev.position.y + this.prev.offsetHeight;
+      this.position.x = 0
+    } else if (this.parent) {
+      this.position.y = this.parent.content.y;
+      this.position.x = this.parent.content.x;
+    } else {
+      this.position.y = 0;
+    }
+    for (const child of this.children) {
+      child.layout(ctx);
+      if (heightUnset) {
+        this.content.height += child.offsetHeight;
+      }
     }
   }
   pain(ctx: CanvasRenderingContext2D): void {
-    this.styles.filter((style) => style instanceof CSSPainRule)
-      .forEach((style) => style.apply(ctx));
+    ctx.fillStyle = 'transparent';
+    this.styles.filter(style => style instanceof CSSPainRule)
+      .forEach(style => style.apply(ctx));
+    ctx.fillRect(this.position.x, this.position.y, this.offsetWidth, this.offsetHeight);
     this.children.forEach(child => child.pain(ctx));
   }
 }

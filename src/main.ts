@@ -1,5 +1,5 @@
-import { CSSBackground, CSSBorderBox, CSSBoxSizing, CSSHeight, CSSPadding } from "./css-rules";
-import { BlockLayout } from "./layout-tree";
+import { CSSBackground, CSSBorderBox, CSSBoxSizing, CSSFont, CSSHeight, CSSPadding } from "./css-rules";
+import { BlockLayout, TextLayout } from "./layout-tree";
 
 const canvas = document.querySelector('#canvas')! as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -22,6 +22,10 @@ function start(){
   const c4 = new BlockLayout();
   const c5 = new BlockLayout();
 
+
+  const t1 = new TextLayout('hello world')
+  const t2 = new TextLayout('hello world!')
+
   blockLayout.children.push(c1, c2);
   c1.parent = blockLayout;
   c2.parent = blockLayout;
@@ -30,10 +34,18 @@ function start(){
   c3.parent = c1;
   c4.parent = c3;
   c5.parent = c2;
-  c2.children.push(c5);
+  t1.parent = c2;
+  t2.parent = c2;
+  c2.children.push(c5, t1, t2);
 
   c2.prev = c1
+  t1.prev = c5
+  t2.prev = t1;
 
+
+  t1.styles.push(
+    new CSSFont('48px sans')
+  )
   c1.styles.push(
     new CSSPadding({ y: 16, x: 16 }),
     new CSSBackground('#FF0000'),
@@ -53,7 +65,7 @@ function start(){
   )
   c5.styles.push(
     new CSSHeight(150),
-    new CSSBackground('#ffff00')
+    new CSSBackground('#ff0000')
   )
   c4.styles.push(new CSSHeight(150), new CSSBackground('#0000ff'));
 
@@ -63,6 +75,8 @@ function start(){
   c3.id = 'c3';
   c4.id = 'c4';
   c5.id = 'c5';
+  t1.id = 't1';
+  t2.id = 't2'
   debugger;
   blockLayout.layout(ctx);
   blockLayout.pain(ctx);

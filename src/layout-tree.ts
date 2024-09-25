@@ -1,4 +1,4 @@
-import { CSSBoxSizing, CSSHeight, CSSMargin, CSSPadding, CSSPainRule, CSSRule, CSSWidth } from "./css-rules";
+import { CSSBoxSizing, CSSHeight, CSSLayoutRule, CSSMargin, CSSPadding, CSSPainRule, CSSRule, CSSWidth } from "./css-rules";
 export class Position {
   constructor(
     public x: number = 0,
@@ -65,6 +65,80 @@ export class Layout {
   }
 }
 
+export class CharLayout extends Layout {
+  constructor(private char: string) {
+    super();
+  }
+  layout(ctx: CanvasRenderingContext2D): void {
+    const { width, fontBoundingBoxAscent } = ctx.measureText(this.char);
+    this.content.width = width;
+    this.content.height = fontBoundingBoxAscent;
+    if (this.parent) {
+      this.position.y = this.parent.content.y;
+      this.position.x += this.parent.content.x;
+    }
+    if (this.prev) {
+      this.position.x = this.prev.position.x + this.prev.offsetWidth;
+    } else if (!this.prev && !this.parent) {
+      this.position.x = 0;
+    }
+    this.position.y += fontBoundingBoxAscent;
+    this.content.x = this.position.x;
+    this.content.y = this.position.y;
+  }
+  pain(ctx: CanvasRenderingContext2D): void {
+    const cachedFillStyle = ctx.fillStyle
+    ctx.fillStyle = '#000'
+    this.styles.filter(style => style instanceof CSSPainRule).forEach(rule => rule.apply(ctx));
+    ctx.fillText(this.char, this.position.x, this.position.y);
+    ctx.fillStyle = cachedFillStyle
+  }
+}
+
+export class TextLayout extends Layout {
+  constructor(
+    private readonly text: string
+  ) {
+    super()
+  }
+  layout(ctx: CanvasRenderingContext2D): void {
+    this.styles.filter(style => style instanceof CSSLayoutRule).forEach(rule => rule.apply(ctx));
+    const { width, actualBoundingBoxAscent } = ctx.measureText(this.text);
+    const children = [];
+    this.content.width = width;
+    this.content.height = actualBoundingBoxAscent;
+    if (this.prev) {
+      let x = this.prev.content.width + this.prev.content.x;
+      let y = this.prev.content.y;
+      if (this.prev instanceof BlockLayout) {
+        x = this.prev.content.x;
+        y = this.prev.offsetHeight + this.prev.position.y;
+      }
+      this.position.x = x;
+      this.position.y = y;
+      this.content.x = x;
+      this.content.y = y;
+    } else if (this.parent) {
+      this.position.x = this.parent.content.x;
+      this.position.y = this.parent.content.y;
+      this.content.x = this.position.x;
+      this.content.y = this.position.y;
+    }
+
+    for (let i = 0; i < this.text.length; i++) {
+      const node = new CharLayout(this.text[i]);
+      children.push(node);
+      node.prev = children.length === 0 ? null : children[i - 1];
+      node.parent = this
+      node.layout(ctx);
+    }
+    this.children = children;
+  }
+  pain(ctx: CanvasRenderingContext2D): void {
+    this.children.forEach(child => child.pain(ctx));
+  }
+}
+
 export class BlockLayout extends Layout {
   constructor() {
     super();
@@ -86,6 +160,8 @@ export class BlockLayout extends Layout {
     }
     if (paddingStyles) {
       this.padding = paddingStyles.apply();
+      this.content.x += this.padding.left;
+      this.content.y += this.padding.top;
     }
 
     if (widthStyle) {
@@ -114,8 +190,8 @@ export class BlockLayout extends Layout {
     } else {
       this.position.y = 0;
     }
-    this.content.x = this.position.x;
-    this.content.y = this.position.y;
+    this.content.x += this.position.x;
+    this.content.y += this.position.y;
     for (const child of this.children) {
       child.layout(ctx);
       if (heightUnset) {

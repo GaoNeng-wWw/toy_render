@@ -69,18 +69,11 @@ export class BlockLayout extends Layout {
     const heightStyle = this.styles.filter(style => style instanceof CSSHeight).at(-1);
     const paddingStyles = this.styles.filter(style => style instanceof CSSPadding).at(-1);
     const marginStyles = this.styles.filter(style => style instanceof CSSMargin).at(-1);
-
-    this.content.x = this.parent?.content.x ?? 0;
-    this.content.y = this.parent?.content.y ?? 0;
     if (marginStyles) {
       this.margin = marginStyles?.apply();
-      this.content.x += this.margin.left;
-      this.content.y += this.margin.top
     }
     if (paddingStyles) {
       this.padding = paddingStyles.apply();
-      this.content.x += this.padding.left;
-      this.content.y += this.padding.top
     }
 
     if (widthStyle) {
@@ -102,10 +95,10 @@ export class BlockLayout extends Layout {
     }
     if (this.prev) {
       this.position.y = this.prev.position.y + this.prev.offsetHeight;
-      this.position.x = 0
+      this.position.x = 0;
     } else if (this.parent) {
-      this.position.y = this.parent.content.y;
-      this.position.x = this.parent.content.x;
+      this.position.y = this.parent.position.y + this.parent.padding.top + this.margin.top;
+      this.position.x = this.parent.position.x + this.parent.padding.left + this.margin.left;
     } else {
       this.position.y = 0;
     }

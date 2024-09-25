@@ -1,4 +1,4 @@
-import { CSSBackground, CSSBorderBox, CSSHeight, CSSPadding } from "./css-rules";
+import { CSSBackground, CSSBorderBox, CSSBoxSizing, CSSHeight, CSSPadding } from "./css-rules";
 import { BlockLayout } from "./layout-tree";
 
 const canvas = document.querySelector('#canvas')! as HTMLCanvasElement;
@@ -20,6 +20,7 @@ function start(){
   const c2 = new BlockLayout();
   const c3 = new BlockLayout();
   const c4 = new BlockLayout();
+  const c5 = new BlockLayout();
 
   blockLayout.children.push(c1, c2);
   c1.parent = blockLayout;
@@ -28,6 +29,8 @@ function start(){
   c3.children.push(c4)
   c3.parent = c1;
   c4.parent = c3;
+  c5.parent = c2;
+  c2.children.push(c5);
 
   c2.prev = c1
 
@@ -44,15 +47,23 @@ function start(){
   )
   c2.styles.push(
     new CSSHeight(150),
+    new CSSPadding({ x: 16, y: 16 }),
+    new CSSBorderBox(),
     new CSSBackground('#66ccff')
+  )
+  c5.styles.push(
+    new CSSHeight(150),
+    new CSSBackground('#ffff00')
   )
   c4.styles.push(new CSSHeight(150), new CSSBackground('#0000ff'));
 
   blockLayout.id = 'blockLayout';
   c1.id = 'c1';
-  c2.id = 'c2'
+  c2.id = 'c2';
   c3.id = 'c3';
-  c4.id = 'c4'
+  c4.id = 'c4';
+  c5.id = 'c5';
+  debugger;
   blockLayout.layout(ctx);
   blockLayout.pain(ctx);
   requestAnimationFrame(start)

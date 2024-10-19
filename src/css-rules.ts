@@ -1,3 +1,6 @@
+import { M } from "vitest/dist/chunks/reporters.C_zwCd4j.js";
+import { Area, RectBox } from "./layout-tree";
+
 export class CSSRule {
   constructor(protected value: any){
     this.value = value;
@@ -89,6 +92,49 @@ export class CSSWidth extends CSSLayoutRule {
   }
 }
 
+export class CSSBoxSizing extends CSSLayoutRule {
+  constructor() { super(null); }
+  apply(ctx: CanvasRenderingContext2D): void { }
+  /**
+   * Border not implment yet, so ignore it
+   */
+  calc(content: Area, padding: RectBox): {
+    width: number,
+    height: number
+  } {
+    const width = content.width;
+    const height = content.height;
+    return { width, height }
+  }
+}
+
+export class CSSContentBox extends CSSBoxSizing {
+  constructor() { super() }
+  calc(content: Area, padding: RectBox): {
+    width: number,
+    height: number
+  } {
+    return super.calc(content, padding);
+  }
+}
+
+export class CSSBorderBox extends CSSBoxSizing {
+  constructor() { super() }
+  calc(content: Area, padding: RectBox): {
+    width: number,
+    height: number
+  } {
+    const widthDiff = padding.left + padding.right
+    const heightDiff = padding.top + padding.bottom;
+    const width = Math.max(content.width - widthDiff, 0);
+    const height = Math.max(content.height - heightDiff, 0);
+    return {
+      width,
+      height
+    }
+  }
+}
+
 export class CSSHeight extends CSSLayoutRule {
   constructor(
     private size: number
@@ -99,7 +145,7 @@ export class CSSHeight extends CSSLayoutRule {
 
   apply() {
     return {
-      contentWidth: this.size
+      contentHeight: this.size
     }
   }
 }

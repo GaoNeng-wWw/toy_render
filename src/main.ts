@@ -1,5 +1,5 @@
-import { CSSBackground, CSSColor, CSSFont, CSSHeight, CSSRule, CSSWidth } from "./css-rules";
-import { BlockLayout, CharLayout, InlineLayout, TextLayout } from "./layout-tree";
+import { CSSBackground, CSSBorderBox, CSSBoxSizing, CSSFont, CSSHeight, CSSPadding } from "./css-rules";
+import { BlockLayout, TextLayout } from "./layout-tree";
 
 const canvas = document.querySelector('#canvas')! as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -11,83 +11,74 @@ const observer = new ResizeObserver(() => {
 });
 observer.observe(canvas)
 
-function createText(text: string, rules: CSSRule[] = []){
-  const textLayout = new TextLayout(
-    [],
-    [
-      new CSSColor('#000000'), new CSSFont('48px sans-serifs'),
-      ...rules
-    ]
-  );
-  let prev = null
-  for (const char of text){
-    prev = new CharLayout(char,textLayout,null,prev);
-    textLayout.children.push(prev);
-  }
-  return textLayout;
-}
-
-function inlineLayout(){
-  const inlineLayout = new InlineLayout([],[
-    new CSSBackground('#ff0000'),
-  ]);
-  const textLayout = new TextLayout(
-    [],
-    [
-      new CSSColor('#00ff00'),
-      new CSSFont('48px sans-serifs'),
-    ]
-  )
-  const text = "hello, world";
-  let prev = null
-  for (const char of text){
-    prev = new CharLayout(char,textLayout,null,prev);
-    textLayout.children.push(prev);
-  }
-  inlineLayout.children.push(textLayout);
-  textLayout.parent = inlineLayout;
-  inlineLayout.layout(ctx);
-  inlineLayout.pain(ctx);
-  requestAnimationFrame(start)
-}
-
-function blockLayout(){
-  const blockLayout = new BlockLayout(
-    [],
-    [
-      new CSSBackground('#ff0000'),
-      new CSSWidth(500),
-    ],
-  )
-  const c1 = new BlockLayout(
-    [],
-    [
-      new CSSBackground('#00ff00'),
-      new CSSHeight(100)
-    ],
-  )
-  const c2 = new BlockLayout([],
-    [
-      new CSSBackground('#0000ff'),
-      new CSSHeight(50)
-    ],
-  )
-  const t = createText('hello-world', [new CSSColor('#ffff00')]);
-  blockLayout.children.push(c1, c2, t);
-  t.prev = c2;
-  c2.prev = c1;
-  c1.parent = blockLayout;
-  c2.parent = blockLayout;
-  t.parent = blockLayout;
-  blockLayout.layout(ctx);
-  blockLayout.pain(ctx)
-}
 
 function start(){
   canvas.width = width;
   canvas.height = height;
-  blockLayout();
+  const blockLayout = new BlockLayout();
+  const c1 = new BlockLayout();
+  const c2 = new BlockLayout();
+  const c3 = new BlockLayout();
+  const c4 = new BlockLayout();
+  const c5 = new BlockLayout();
+
+
+  const t1 = new TextLayout('hello world')
+  const t2 = new TextLayout('hello world!')
+
+  blockLayout.children.push(c1, c2);
+  c1.parent = blockLayout;
+  c2.parent = blockLayout;
+  c1.children.push(c3);
+  c3.children.push(c4)
+  c3.parent = c1;
+  c4.parent = c3;
+  c5.parent = c2;
+  t1.parent = c2;
+  t2.parent = c2;
+  c2.children.push(c5, t1, t2);
+
+  c2.prev = c1
+  t1.prev = c5
+  t2.prev = t1;
+
+
+  t1.styles.push(
+    new CSSFont('48px sans')
+  )
+  c1.styles.push(
+    new CSSPadding({ y: 16, x: 16 }),
+    new CSSBackground('#FF0000'),
+    new CSSBorderBox()
+  )
+  c3.styles.push(
+    new CSSHeight(150),
+    new CSSPadding({ x: 16, y: 16 }),
+    new CSSBorderBox(),
+    new CSSBackground('#00ff00')
+  )
+  c2.styles.push(
+    new CSSHeight(150),
+    new CSSPadding({ x: 16, y: 16 }),
+    new CSSBorderBox(),
+    new CSSBackground('#66ccff')
+  )
+  c5.styles.push(
+    new CSSHeight(150),
+    new CSSBackground('#ff0000')
+  )
+  c4.styles.push(new CSSHeight(150), new CSSBackground('#0000ff'));
+
+  blockLayout.id = 'blockLayout';
+  c1.id = 'c1';
+  c2.id = 'c2';
+  c3.id = 'c3';
+  c4.id = 'c4';
+  c5.id = 'c5';
+  t1.id = 't1';
+  t2.id = 't2';
+  blockLayout.layout(ctx);
+  blockLayout.pain(ctx);
   requestAnimationFrame(start)
 }
 start()
-requestAnimationFrame(start)

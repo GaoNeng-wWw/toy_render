@@ -76,8 +76,7 @@ function start(){
   c4.id = 'c4';
   c5.id = 'c5';
   t1.id = 't1';
-  t2.id = 't2'
-  debugger;
+  t2.id = 't2';
   blockLayout.layout(ctx);
   blockLayout.pain(ctx);
   requestAnimationFrame(start)

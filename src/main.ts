@@ -11,10 +11,7 @@ const observer = new ResizeObserver(() => {
 });
 observer.observe(canvas)
 
-
-function start(){
-  canvas.width = width;
-  canvas.height = height;
+function layoutTreeTest(){
   const blockLayout = new BlockLayout();
   const c1 = new BlockLayout();
   const c2 = new BlockLayout();
@@ -79,6 +76,25 @@ function start(){
   t2.id = 't2';
   blockLayout.layout(ctx);
   blockLayout.pain(ctx);
+}
+
+function start(){
+  canvas.width = width;
+  canvas.height = height;
+  const blockLayout = new BlockLayout();
+  blockLayout.styles.push(
+    // new CSSHeight(100),
+    new CSSBackground('#66ccff')
+  );
+  const text = new TextLayout('abcdefghijklmnopqrstuvwxyz');
+  text.styles.push(
+    new CSSFont('48px sans')
+  );
+  text.parent = blockLayout;
+  blockLayout.children.push(text)
+  blockLayout.layout(ctx);
+  blockLayout.pain(ctx);
+
   requestAnimationFrame(start)
 }
 start()

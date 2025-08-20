@@ -70,21 +70,27 @@ export class CharLayout extends Layout {
     super();
   }
   layout(ctx: CanvasRenderingContext2D): void {
-    const { width, fontBoundingBoxAscent } = ctx.measureText(this.char);
+    const { width, fontBoundingBoxAscent, fontBoundingBoxDescent} = ctx.measureText(this.char);
     this.content.width = width;
-    this.content.height = fontBoundingBoxAscent;
+    this.content.height = fontBoundingBoxAscent + fontBoundingBoxDescent;
     if (this.parent) {
       this.position.y = this.parent.content.y;
       this.position.x += this.parent.content.x;
     }
     if (this.prev) {
       this.position.x = this.prev.position.x + this.prev.offsetWidth;
-    } else if (!this.prev && !this.parent) {
+      this.position.y = this.prev.position.y
+    } else if (!this.prev || !this.parent) {
       this.position.x = 0;
+      this.position.y = fontBoundingBoxAscent
     }
-    this.position.y += fontBoundingBoxAscent;
-    this.content.x = this.position.x;
-    this.content.y = this.position.y;
+    if (this.shouldNewLine()) {
+      this.position.x = 0;
+      this.position.y += fontBoundingBoxAscent
+    }
+  }
+  private shouldNewLine(){
+    return (this.parent?.content.width??0) < this.offsetWidth + this.position.x
   }
   pain(ctx: CanvasRenderingContext2D): void {
     const cachedFillStyle = ctx.fillStyle
@@ -103,7 +109,7 @@ export class TextLayout extends Layout {
   }
   layout(ctx: CanvasRenderingContext2D): void {
     this.styles.filter(style => style instanceof CSSLayoutRule).forEach(rule => rule.apply(ctx));
-    const { width, actualBoundingBoxAscent } = ctx.measureText(this.text);
+    const { width, actualBoundingBoxAscent} = ctx.measureText(this.text);
     const children = [];
     this.content.width = width;
     this.content.height = actualBoundingBoxAscent;
@@ -127,12 +133,14 @@ export class TextLayout extends Layout {
 
     for (let i = 0; i < this.text.length; i++) {
       const node = new CharLayout(this.text[i]);
+      node.id = this.text[i]
       children.push(node);
       node.prev = children.length === 0 ? null : children[i - 1];
-      node.parent = this
+      node.parent = this.parent
       node.layout(ctx);
     }
     this.children = children;
+    this.content.height = Math.max(...this.children.map(child => child.position.y))
   }
   pain(ctx: CanvasRenderingContext2D): void {
     this.children.forEach(child => child.pain(ctx));
